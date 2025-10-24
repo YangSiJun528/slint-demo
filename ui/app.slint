@@ -1,24 +1,7 @@
-import { Column } from "./component/column.slint";
-import { ScrollView } from "std-widgets.slint";
-
-
-export component ColumnView inherits Window {
-    title: "Column View";
-    min-width: 200px;
-    min-height: 100px;
-
-    in property <[[string]]> columns: [[]];
-
-    HorizontalLayout {
-        ScrollView {
-            HorizontalLayout {
-                spacing: 0px;
-
-                for col[col-idx] in columns: Column {
-                    items: col;
-                    selected-index: -1;
-                }
-            }
-        }
+export component MainWindow inherits Window {
+    width: 326px;
+    height: 326px;
+    Text {
+        text: "HelloWorld!";
     }
 }
