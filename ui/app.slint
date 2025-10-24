@@ -1,22 +1,47 @@
-import { Column } from "./component/column.slint";
+import { Column, RawItem, ItemType } from "./component/column.slint";
 import { ScrollView } from "std-widgets.slint";
-
 
 export component ColumnView inherits Window {
     title: "Column View";
-    min-width: 200px;
+    min-width: 600px;
     min-height: 100px;
 
-    in property <[[string]]> columns: [[]];
+    in property <[[RawItem]]> column-data: [];
+    in property <length> column-width: 220px;
+
+    // 실제 데이터가 있는 컬럼 수와 화면에 보여야 할 최소 컬럼 수 중 큰 값
+    property <int> visible-columns: max(
+        column-data.length,
+        floor(root.width / column-width) + 1
+    );
 
     HorizontalLayout {
+        padding: 0px;
+        spacing: 0px;
+
         ScrollView {
+            width: 100%;
+            height: 100%;
+
+            vertical-scrollbar-policy: always-off;
+            horizontal-scrollbar-policy: as-needed;
+
             HorizontalLayout {
                 spacing: 0px;
+                padding: 0px;
 
-                for col[col-idx] in columns: Column {
-                    items: col;
-                    selected-index: -1;
+                for col[idx] in visible-columns: VerticalLayout {
+                    spacing: 0px;
+                    padding: 0px;
+
+                    Column {
+                        preferred-width: column-width;
+                        min-width: column-width;
+                        max-width: column-width;
+                        height: 100%;
+
+                        items: column-data.length > idx ? column-data[idx] : [];
+                    }
                 }
             }
         }

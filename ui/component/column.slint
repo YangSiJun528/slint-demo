@@ -1,24 +1,43 @@
-import { DataItem } from "./data_item.slint";
-import { ScrollView } from "std-widgets.slint";
+import { ListView } from "std-widgets.slint";
 
+export enum ItemType { FILE, DIRECTORY }
+
+export struct RawItem {
+    item-type: ItemType,
+    name: string,
+}
 
 export component Column inherits Rectangle {
-    in property <[string]> items;
-    in property <int> selected-index: -1;
-    
-    width: 250px;
-    background: #2b2b2b;
+    in property <[RawItem]> items;
+    in-out property <int> selected-index: -1;
+
+    width: 200px;
+    border-color: #ccc;
     border-width: 1px;
-    border-color: #1a1a1a;
-    
-    ScrollView {
-        VerticalLayout {
-            padding: 0px;
-            
-            for item[idx] in items: DataItem {
-                item-name: item;
-                is-folder: true;
-                is-selected: idx == selected-index;
+
+    ListView {
+        for item[idx] in root.items: Rectangle {
+            height: 30px;
+            background: idx == root.selected-index ? #e0e0e0 : transparent;
+
+            HorizontalLayout {
+                padding: 5px;
+                spacing: 5px;
+
+                Text {
+                    text: item.item-type == ItemType.DIRECTORY ? "📁" : "📄";
+                }
+
+                Text {
+                    text: item.name;
+                    vertical-alignment: center;
+                }
+            }
+
+            TouchArea {
+                clicked => {
+                    root.selected-index = idx;
+                }
             }
         }
     }
