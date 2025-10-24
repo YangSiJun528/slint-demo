@@ -1,49 +1,123 @@
-import { Column, RawItem, ItemType } from "./component/column.slint";
-import { ScrollView } from "std-widgets.slint";
+import { VerticalBox, ScrollView } from "std-widgets.slint";
+
+export enum ItemType {
+    File,
+    Directory
+}
+
+export struct FileItem {
+    name: string,
+    type: ItemType,
+}
+
+component RowFile inherits Rectangle {
+    in property <FileItem> item;
+
+    height: 32px;
+    background: touch.has-hover ? #f0f0f0 : transparent;
+
+    HorizontalLayout {
+        padding: 8px;
+        spacing: 8px;
+
+        // Icon
+        Rectangle {
+            width: 16px;
+            height: 16px;
+
+            if item.type == ItemType.Directory : Rectangle {
+                background: #4a90e2;
+                border-radius: 2px;
+            }
+
+            if item.type == ItemType.File : Rectangle {
+                background: #e0e0e0;
+                border-radius: 2px;
+                border-width: 1px;
+                border-color: #999;
+            }
+        }
+
+        Text {
+            text: item.name;
+            vertical-alignment: center;
+        }
+    }
+
+    touch := TouchArea {}
+}
+
+component Column inherits Rectangle {
+    in property <[FileItem]> items;
+    in property <bool> is-background: false;
+
+    width: 200px;
+    background: white;
+    border-width: 1px;
+    border-color: #ccc;
+
+    if !is-background : ScrollView {
+        VerticalBox {
+            padding: 0px;
+            spacing: 0px;
+
+            for item in items : RowFile {
+                item: item;
+            }
+        }
+    }
+}
 
 export component ColumnView inherits Window {
-    title: "Column View";
-    min-width: 600px;
-    min-height: 100px;
+    in property <[[FileItem]]> column-data: [];
 
-    in property <[[RawItem]]> column-data: [];
-    in property <length> column-width: 220px;
+    // 창 리사이즈를 가능하게 설정
+    min-width: 400px;
+    min-height: 300px;
 
-    // 실제 데이터가 있는 컬럼 수와 화면에 보여야 할 최소 컬럼 수 중 큰 값
-    property <int> visible-columns: max(
-        column-data.length,
-        floor(root.width / column-width) + 1
-    );
+    // 컬럼 너비와 개수 계산
+    private property <int> column-width: 200;
+    private property <int> visible-columns: max(1, (floor((self.width / column-width) / 1px)));
 
     HorizontalLayout {
         padding: 0px;
         spacing: 0px;
 
-        ScrollView {
-            width: 100%;
-            height: 100%;
-
-            vertical-scrollbar-policy: always-off;
-            horizontal-scrollbar-policy: as-needed;
-
-            HorizontalLayout {
-                spacing: 0px;
-                padding: 0px;
-
-                for col[idx] in visible-columns: VerticalLayout {
-                    spacing: 0px;
-                    padding: 0px;
-
-                    Column {
-                        preferred-width: column-width;
-                        min-width: column-width;
-                        max-width: column-width;
-                        height: 100%;
-
-                        items: column-data.length > idx ? column-data[idx] : [];
-                    }
-                }
-            }
+        // 모든 컬럼 표시 (데이터가 없으면 빈 컬럼)
+        for i in visible-columns : Column {
+            is-background: i >= column-data.length;
+            items: i < column-data.length ? column-data[i] : [];
         }
     }
+}
+
+// Example usage - 창 리사이즈를 명시적으로 활성화
+export component Example inherits ColumnView {
+    title: "Column View Example";
+    // 창 리사이즈 속성 명시적 설정
+    min-width: 400px;
+    min-height: 300px;
+
+    column-data: [
+        [
+            { name: "Documents", type: ItemType.Directory },
+            { name: "Pictures", type: ItemType.Directory },
+            { name: "Music", type: ItemType.Directory },
+            { name: "readme.txt", type: ItemType.File },
+            { name: "config.json", type: ItemType.File },
+        ],
+        [
+            { name: "Work", type: ItemType.Directory },
+            { name: "Personal", type: ItemType.Directory },
+            { name: "report.pdf", type: ItemType.File },
+            { name: "notes.md", type: ItemType.File },
+        ],
+        [
+            { name: "Project1", type: ItemType.Directory },
+            { name: "Project2", type: ItemType.Directory },
+            { name: "main.rs", type: ItemType.File },
+            { name: "lib.rs", type: ItemType.File },
+            { name: "Cargo.toml", type: ItemType.File },
+        ],
+    ];
 }
